@@ -36,7 +36,6 @@ so an edited payload has no approval and cannot run.
 ## Architecture
 
 ```
-dropbox/
 ├── module.json                  # v2 manifest: id, commands, auth, requires
 ├── handlers/
 │   └── handler.py               # orchestration layer (dropbox_* functions)
