@@ -1,0 +1,321 @@
+{
+  "manifest_version": 2,
+  "id": "muhamed/dropbox",
+  "name": "Dropbox Airlock",
+  "version": "0.1.0",
+  "provider": "dropbox",
+  "description": "Let an AI operator manage Dropbox files and folders without betting your workspace on it. An agent that can move, delete, or share files unattended is one bad inference away from nuking a client deliverable or leaking a private folder — which is why most teams keep every file operation by hand. Dropbox Airlock gives the agent ten real Dropbox commands and removes the unattended trigger: reads run freely, while every upload, move, copy, delete, folder creation, and shared-link mutation stops at a human approval bound to the exact payload, executes once, and leaves an Ed25519-signed receipt. Approval is bound to the payload hash, so an edited payload has no approval and cannot run. Optimistic preconditions refuse stale approvals when the live file or folder state moved since you approved. Pure domain planners are isolated from vault and I/O; a fixed-origin transport is the only network layer. Every successful result carries a deterministic SHA-256 event chain from intent through live observation and decision to verified outcome. The API token is read from RailCall's vault, never accepted as input, never logged, never returned, and Dropbox's own errors are surfaced instead of a fabricated success. contest:2026Q3",
+  "auth": {
+    "type": "api_key",
+    "vault_provider": "dropbox",
+    "field": "DROPBOX_API_KEY"
+  },
+  "requires": {
+    "network": [
+      "api.dropboxapi.com",
+      "content.dropboxapi.com"
+    ],
+    "subprocess": false,
+    "filesystem_writes": []
+  },
+  "commands": [
+    {
+      "id": "dropbox.list_folder",
+      "title": "List contents of a Dropbox folder",
+      "provider": "dropbox",
+      "risk": "low",
+      "mode": "read",
+      "side_effects": "none",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        },
+        "recursive": {
+          "type": "string",
+          "required": false
+        },
+        "limit": {
+          "type": "number",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "entries": "array",
+        "has_more": "boolean",
+        "cursor": "string",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.get_metadata",
+      "title": "Retrieve metadata for a file or folder",
+      "provider": "dropbox",
+      "risk": "low",
+      "mode": "read",
+      "side_effects": "none",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "output_schema": {
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.search",
+      "title": "Search for files and folders by name or content",
+      "provider": "dropbox",
+      "risk": "low",
+      "mode": "read",
+      "side_effects": "none",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "query": {
+          "type": "string",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": false
+        },
+        "max_results": {
+          "type": "number",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "matches": "array",
+        "has_more": "boolean",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.create_folder",
+      "title": "Create a new folder in Dropbox",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        },
+        "autorename": {
+          "type": "string",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "folder": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.move",
+      "title": "Move a file or folder to a new path",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "from_path": {
+          "type": "string",
+          "required": true
+        },
+        "to_path": {
+          "type": "string",
+          "required": true
+        },
+        "autorename": {
+          "type": "string",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.copy",
+      "title": "Copy a file or folder to a new path",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "from_path": {
+          "type": "string",
+          "required": true
+        },
+        "to_path": {
+          "type": "string",
+          "required": true
+        },
+        "autorename": {
+          "type": "string",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.delete",
+      "title": "Delete a file or folder",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "output_schema": {
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.upload",
+      "title": "Upload text content as a new file",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        },
+        "content": {
+          "type": "string",
+          "required": true
+        },
+        "mode": {
+          "type": "string",
+          "required": false
+        },
+        "autorename": {
+          "type": "string",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.create_shared_link",
+      "title": "Create a shared link for a file or folder",
+      "provider": "dropbox",
+      "risk": "high",
+      "mode": "write_requires_approval",
+      "side_effects": "external",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "output_schema": {
+        "url": "string",
+        "metadata": "object",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    },
+    {
+      "id": "dropbox.list_revisions",
+      "title": "List file revisions for rollback and audit",
+      "provider": "dropbox",
+      "risk": "low",
+      "mode": "read",
+      "side_effects": "none",
+      "requires": [
+        "DROPBOX_API_KEY"
+      ],
+      "preview": true,
+      "receipt_required": true,
+      "input_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "required": false
+        }
+      },
+      "output_schema": {
+        "revisions": "array",
+        "is_deleted": "boolean",
+        "http_status": "number",
+        "safety_proof": "object"
+      }
+    }
+  ],
+  "license_required": false
+}
